@@ -1,0 +1,23 @@
+# Data
+creditcard.csv
+data_splits.pkl
+
+# Models & Scalers
+*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs & Diagnostics
+server.log
+diag.py
+
+# Plot outputs (Optional: keep them if you want them on GitHub, but usually these are generated)
+# *.png
+
+# Virtual Environment
+venv/
+env/
+.env

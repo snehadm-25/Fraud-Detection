@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentryForce | AI Fraud Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SentryForce</h1>
+            <p>Advanced Real-time Credit Card Fraud Detection</p>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Prediction Card -->
+            <div class="card">
+                <h2>Analyze Transaction</h2>
+                <form id="prediction-form">
+                    <div class="input-group">
+                        <label for="v1">Feature V1 (Example Component)</label>
+                        <input type="number" step="any" id="v1" placeholder="e.g., -1.359" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="v2">Feature V2</label>
+                        <input type="number" step="any" id="v2" placeholder="e.g., -0.072" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="amount">Transaction Amount ($)</label>
+                        <input type="number" step="any" id="amount" placeholder="e.g., 149.62" required>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.5rem;">
+                        Note: For demonstration, other PCA components (V3-V28) will be set to 0.
+                    </p>
+                    <button type="submit">Scan for Fraud</button>
+                </form>
+
+                <div id="result" class="prediction-result">
+                    <h3 id="result-text"></h3>
+                    <p id="probability-text"></p>
+                </div>
+            </div>
+
+            <!-- Performance Card -->
+            <div class="card">
+                <div class="tabs">
+                    <div class="tab active" onclick="showChart('pr')">PR Curve</div>
+                    <div class="tab" onclick="showChart('cm')">Confusion Matrix</div>
+                </div>
+                
+                <div id="pr-chart" class="chart-container">
+                    <img src="{{ url_for('static', filename='precision_recall_curve.png') }}" alt="PR Curve">
+                    <p style="margin-top:1rem;">AUPRC: 0.7958 (Random Forest)</p>
+                </div>
+                
+                <div id="cm-chart" class="chart-container" style="display:none;">
+                    <img src="{{ url_for('static', filename='confusion_matrix_random_forest.png') }}" alt="Confusion Matrix">
+                    <p style="margin-top:1rem;">Precision (Fraud): 51% | Recall (Fraud): 84%</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Built with Scikit-Learn & Random Forest | Secure Transaction Analysis
+        </footer>
+    </div>
+
+    <script>
+        function showChart(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('pr-chart').style.display = 'none';
+            document.getElementById('cm-chart').style.display = 'none';
+
+            if (type === 'pr') {
+                document.getElementById('pr-chart').style.display = 'block';
+                event.target.classList.add('active');
+            } else {
+                document.getElementById('cm-chart').style.display = 'block';
+                event.target.classList.add('active');
+            }
+        }
+
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const resultDiv = document.getElementById('result');
+            const resultText = document.getElementById('result-text');
+            const probText = document.getElementById('probability-text');
+
+            btn.disabled = true;
+            btn.innerText = 'Analyzing...';
+            resultDiv.style.display = 'none';
+
+            const data = {
+                v1: parseFloat(document.getElementById('v1').value),
+                v2: parseFloat(document.getElementById('v2').value),
+                amount: parseFloat(document.getElementById('amount').value)
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'prediction-result ' + (result.is_fraud ? 'fraud' : 'safe');
+                resultText.innerText = result.is_fraud ? '⚠️ Fraud Detected' : '✅ Transaction Secure';
+                probText.innerText = `Fraud Probability: ${(result.fraud_probability * 100).toFixed(2)}%`;
+            } catch (error) {
+                alert('Connection error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Scan for Fraud';
+            }
+        });
+    </script>
+</body>
+</html>
