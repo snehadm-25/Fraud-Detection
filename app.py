@@ -54,5 +54,5 @@ def predict():
 
 if __name__ == '__main__':
     setup()
-    print("SentryForce Dashboard running at http://127.0.0.1:5000")
-    app.run(debug=False, port=5000)
+    print("SentryForce Dashboard running at http://0.0.0.0:7860")
+    app.run(host='0.0.0.0', port=7860)
